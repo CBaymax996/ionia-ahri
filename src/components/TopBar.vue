@@ -1,7 +1,7 @@
 <template>
   <div class="bg-[#181d24] flex flex-row justify-between">
     <div class="w-100">
-      <img src="src/assets/ionia.svg"  alt=""/>
+      <img src="/public/ionia.svg" alt=""/>
     </div>
 
     <div class="flex flex-row h-full bg-white">

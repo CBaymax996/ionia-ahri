@@ -1,12 +1,12 @@
 <template>
   <div class="h-screen w-screen bg-cover flex justify-center items-center"
-       style="background-image: url('./src/assets/buaa.jpeg')"
+       style="background-image: url('./public/buaa.jpeg')"
   >
     <!--登陆框-->
     <div class="login-box flex flex-col justify-center w-70 px-25 py-15">
       <!--logo-->
       <div >
-        <img src="src/assets/ionia.svg" alt="#"/>
+        <img src="/public/ionia.svg" alt="#"/>
       </div>
 
       <!-- 登陆表单-->
