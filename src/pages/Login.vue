@@ -1,12 +1,12 @@
 <template>
   <div class="h-screen w-screen bg-cover flex justify-center items-center"
-       style="background-image: url('./public/buaa.jpeg')"
+       :style="{'background-image': `url(${bgImgPath})`}"
   >
     <!--登陆框-->
     <div class="login-box flex flex-col justify-center w-70 px-25 py-15">
       <!--logo-->
-      <div >
-        <img src="/public/ionia.svg" alt="#"/>
+      <div>
+        <img alt="#" src="/src/assets/ionia.svg"/>
       </div>
 
       <!-- 登陆表单-->
@@ -72,10 +72,10 @@
 
 </style>
 <script setup>
-import {User, Lock} from '@element-plus/icons-vue'
 import {ref} from "vue";
 import {ElMessage} from "element-plus";
 import {useTitle} from "@vueuse/core/index";
+import bgImgPath from "../assets/buaa.jpeg"
 
 useTitle("Login Page")
 
