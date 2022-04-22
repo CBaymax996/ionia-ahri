@@ -18,7 +18,7 @@
         </el-icon>
         <template #title>意图管理</template>
       </el-menu-item>
-      <el-menu-item index="service">
+      <el-menu-item index="/dashboard/service">
         <template #title>
           <el-icon>
             <Link/>
@@ -41,7 +41,7 @@
       </el-menu-item>
 
 
-      <el-menu-item index="chat">
+      <el-menu-item index="/dashboard/chat">
         <el-icon>
           <ChatRound/>
         </el-icon>
