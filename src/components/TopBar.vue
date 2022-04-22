@@ -4,15 +4,17 @@
       <img alt="" src="/src/assets/ionia.svg"/>
     </div>
 
-    <div class="flex flex-row h-full bg-white">
-      <el-icon class="w-20" size="10px">
-        <User/>
-      </el-icon>
-      <p>管理员</p>
+    <div class="flex flex-row justify-center items-center h-full w-25">
+      <el-avatar :size="30"
+                 :src="userIcon"
+                 fit="cover"
+      />
+      <p class="c-white mx-2">管理员</p>
     </div>
   </div>
 
 </template>
 <script setup>
-import {User}  from '@element-plus/icons-vue'
+import userIcon from '~/assets/chat/user.jpg?url'
+
 </script>

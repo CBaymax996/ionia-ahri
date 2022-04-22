@@ -1,7 +1,8 @@
 <template>
-  <div class="sidebar flex flex-col justify-between item-center">
+  <div class="sidebar flex flex-col justify-between">
 
     <el-menu
+        router
         class="el-menu"
         background-color="#0c1118"
         text-color="#fff"
@@ -11,54 +12,45 @@
         @close="handleClose"
     >
 
-      <el-menu-item index="1">
+      <el-menu-item disabled index="1">
         <el-icon>
-          <icon-menu/>
+          <Compass/>
         </el-icon>
         <template #title>意图管理</template>
       </el-menu-item>
-      <el-sub-menu index="2">
+      <el-menu-item index="service">
         <template #title>
           <el-icon>
-            <location/>
+            <Link/>
           </el-icon>
           <span>服务管理</span>
         </template>
-        <el-menu-item-group>
-          <template #title><span>Group One</span></template>
-          <el-menu-item index="1-1">item one</el-menu-item>
-          <el-menu-item index="1-2">item two</el-menu-item>
-        </el-menu-item-group>
-        <el-menu-item-group title="Group Two">
-          <el-menu-item index="1-3">item three</el-menu-item>
-        </el-menu-item-group>
-        <el-sub-menu index="1-4">
-          <template #title><span>item four</span></template>
-          <el-menu-item index="1-4-1">item one</el-menu-item>
-        </el-sub-menu>
-      </el-sub-menu>
-      <el-menu-item index="3">
-        <el-icon>
-          <icon-menu/>
-        </el-icon>
-        <template #title>意图管理</template>
       </el-menu-item>
-      <el-menu-item index="4" disabled>
+      <el-menu-item disabled index="3">
         <el-icon>
-          <document/>
+          <Scissor/>
         </el-icon>
         <template #title>词槽管理</template>
       </el-menu-item>
-      <el-menu-item index="5">
+
+      <el-menu-item disabled index="4">
         <el-icon>
-          <setting/>
+          <Files/>
         </el-icon>
-        <template #title>对话模板管理</template>
+        <template #title>模板管理</template>
+      </el-menu-item>
+
+
+      <el-menu-item index="chat">
+        <el-icon>
+          <ChatRound/>
+        </el-icon>
+        <template #title>人机对话</template>
       </el-menu-item>
     </el-menu>
 
     <!--展开收起按钮-->
-    <div class="h-12 flex justify-center w-full bg-[#05172b]">
+    <div class="h-10 flex justify-center w-full bg-[#05172b]">
       <el-icon size="24px" class="self-center" color="#818c97">
         <ArrowRightBold v-if="isCollapse" @click="isCollapse=!isCollapse"/>
         <ArrowLeftBold v-else @click="isCollapse=!isCollapse"/>
@@ -66,16 +58,18 @@
     </div>
   </div>
 </template>
+
+
 <script setup>
 import {ref} from 'vue'
 import {
-  Document,
-  Menu as IconMenu,
+  Compass,
+  Scissor,
+  Files,
+  Link,
+  ChatRound,
   ArrowLeftBold,
-  ArrowRightBold,
-  Location,
-  Setting,
-  DArrowLeft
+  ArrowRightBold
 } from '@element-plus/icons-vue'
 
 const isCollapse = ref(false)
@@ -102,4 +96,9 @@ const handleClose = (key, keyPath) => {
   background-color: #0c1118;
   color: white;
 }
+
+.sidebar * {
+  font-size: 16px;
+}
+
 </style>

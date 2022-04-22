@@ -2,7 +2,7 @@ import {defineConfig} from 'vite'
 import path from "path";
 import vue from '@vitejs/plugin-vue'
 import Unocss from 'unocss/vite'
-import {presetAttributify, presetTypography, presetUno} from "unocss";
+import {presetUno} from "unocss";
 import Layouts from 'vite-plugin-vue-layouts'
 import Pages from 'vite-plugin-pages'
 
@@ -27,7 +27,7 @@ export default defineConfig({
     ],
     resolve: {
         alias: {
-            '~': path.resolve(__dirname, 'src')
+            '~': `${path.resolve(__dirname, 'src')}/`,
         }
     }
 

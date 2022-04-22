@@ -1,6 +1,6 @@
 <template>
   <div class="h-screen w-screen bg-cover flex justify-center items-center"
-       :style="{'background-image': `url(${bgImgPath})`}"
+       :style="{'background-image': `url(${bgImg})`}"
   >
     <!--登陆框-->
     <div class="login-box flex flex-col justify-center w-70 px-25 py-15">
@@ -75,7 +75,7 @@
 import {ref} from "vue";
 import {ElMessage} from "element-plus";
 import {useTitle} from "@vueuse/core/index";
-import bgImgPath from "../assets/buaa.jpeg"
+import bgImg from "~/assets/buaa.jpeg"
 
 useTitle("Login Page")
 

@@ -1,14 +1,15 @@
 <template>
-  <main class="flex flex-col w-screen h-screen">
+  <main class="w-screen h-screen flex flex-col ">
     <TopBar class="h-20"/>
-    <div class="h-full flex">
-      <SideBar class="flex-initial"/>
-      <div class="flex flex-1 flex-col">
-        <RouterView class="flex-1"/>
+    <div class="h-full w-full flex ">
+      <SideBar class="h-full flex-initial"/>
+      <div class="h-full flex-1 flex flex-col">
+        <div class="h-full w-full ">
+          <RouterView/>
+        </div>
         <Footer class="h-8"/>
       </div>
     </div>
-
   </main>
 </template>
 
