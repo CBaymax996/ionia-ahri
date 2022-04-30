@@ -1,20 +1,27 @@
 <template>
   <div class="bg-[#181d24] flex flex-row justify-between">
     <div class="w-100">
-      <img alt="" src="/src/assets/ionia.svg"/>
+      <img :src="ioniaLogo" alt=""/>
     </div>
 
     <div class="flex flex-row justify-center items-center h-full w-25">
       <el-avatar :size="30"
-                 :src="userIcon"
                  fit="cover"
-      />
+      >管
+      </el-avatar>
       <p class="c-white mx-2">管理员</p>
     </div>
   </div>
 
 </template>
 <script setup>
-import userIcon from '~/assets/chat/user.jpg?url'
+import ioniaLogo from "~/assets/ionia.svg"
 
 </script>
+
+<style scoped>
+/deep/ .el-avatar {
+  color: #FFDEE9;
+  background-color: #9599E2;
+}
+</style>

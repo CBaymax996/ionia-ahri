@@ -1,0 +1,2 @@
+const TokenKey = 'ionia-token';
+

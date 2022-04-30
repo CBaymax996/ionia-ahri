@@ -1,5 +1,5 @@
 <template>
-  <div class="h-screen w-screen bg-cover flex justify-center items-center"
+  <div class="login-page h-screen w-screen bg-cover flex justify-center items-center"
        :style="{'background-image': `url(${bgImg})`}"
   >
     <!--登陆框-->
@@ -8,19 +8,61 @@
       <div>
         <img alt="#" src="/src/assets/ionia.svg"/>
       </div>
-
       <!-- 登陆表单-->
-      <div class="login-form w-full self-center">
-        <input type="text" placeholder="username"/>
-        <input type="password" placeholder="password">
+      <el-form :model="formData" class="login-form w-full self-center">
+        <el-input v-model="formData.username" class="input" placeholder="username"/>
+        <el-input v-model="formData.password" class="input" placeholder="password" show-password type="password"/>
         <div class="flex justify-between items-center">
-          <a class="login-button  px-5 py-1">login</a>
+          <a class="login-button  px-5 py-1" @click="onSubmit">login</a>
           <a class="no-underline text-center text-sm	c-white capitalize" href="#">forget?</a>
         </div>
-      </div>
+      </el-form>
     </div>
   </div>
 </template>
+
+<script setup>
+import axios from "axios";
+import {useTitle} from "@vueuse/core/index";
+import {useCookies} from '@vueuse/integrations/useCookies'
+import {ref} from "vue";
+import {ElMessage} from "element-plus";
+import {LoginCookieKey} from '~/config/LoginConfig'
+
+import bgImg from "~/assets/buaa.jpeg"
+import {router} from "../config/RouteConfig";
+
+useTitle("Login Page")
+
+// 表单内容
+let formData = ref({
+  username: "",
+  password: ""
+})
+
+
+function onSubmit() {
+  let cookies = useCookies();
+  axios.post('/api/login', {
+    username: formData.value.username,
+    password: formData.value.password
+  }).then((res, req) => {
+    console.log(req)
+    console.log(res.data);
+    let data = res.data
+    if (data.success === true) {
+      ElMessage({message: data.data, type: "success"})
+      router.push("/")
+    } else {
+      ElMessage({message: data.message, type: "error"})
+    }
+  })
+  cookies.set(LoginCookieKey, "admin")
+
+
+}
+</script>
+
 <style scoped>
 * {
   /*禁用选择*/
@@ -36,19 +78,30 @@
 }
 
 /*输入框格式*/
-.login-form input {
+/deep/ .el-input {
   display: block;
   border: none;
   width: 100%;
-  box-shadow: 0 1px 0 0 white;
-  background: none;
-  color: white;
-  outline: none;
   font-size: 1em;
   margin: 20px 0;
   font-family: Assiatant, sans-serif;
+}
+
+/deep/ .el-input__inner {
+  background-color: transparent !important;
+  border: none;
+  box-shadow: 0 1px 0 0 white;
+  outline: none;
+  border-radius: 0;
+  color: white;
   letter-spacing: 0.045em;
 }
+
+/deep/ .el-input__suffix {
+  --el-input-icon-color: #CCCCCC !important;
+  --el-input-clear-hover-color: white !important;
+}
+
 
 .login-form *::placeholder {
   color: #BBBBBB;
@@ -71,23 +124,3 @@
 
 
 </style>
-<script setup>
-import {ref} from "vue";
-import {ElMessage} from "element-plus";
-import {useTitle} from "@vueuse/core/index";
-import bgImg from "~/assets/buaa.jpeg"
-
-useTitle("Login Page")
-
-// 表单内容
-let formData = ref({
-  username: "",
-  password: ""
-})
-
-
-function onSubmit() {
-  ElMessage({message: "登陆成功", type: "success"})
-}
-</script>
-

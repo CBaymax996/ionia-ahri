@@ -1,0 +1,1 @@
+export const LoginCookieKey = "IONIA_AHRI_LOGIN_TOKEN"

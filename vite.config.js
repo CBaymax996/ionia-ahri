@@ -12,7 +12,16 @@ import Pages from 'vite-plugin-pages'
 export default defineConfig({
 
     server: {
-        port: 21471
+        port: 21471,
+        base: "./",
+        proxy: {
+            '/api': {
+                target: 'http://localhost:8081',
+                changeOrigin: true,
+                rewrite: (path) => path.replace(/^\/api/, '')
+            },
+        },
+        cors: true
     },
 
     plugins: [

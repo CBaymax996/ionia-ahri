@@ -52,8 +52,8 @@
     <!--展开收起按钮-->
     <div class="h-10 flex justify-center w-full bg-[#05172b]">
       <el-icon size="24px" class="self-center" color="#818c97">
-        <ArrowRightBold v-if="isCollapse" @click="isCollapse=!isCollapse"/>
-        <ArrowLeftBold v-else @click="isCollapse=!isCollapse"/>
+        <ArrowRightBold v-if="isCollapse" @click="handleStretch"/>
+        <ArrowLeftBold v-else @click="handleStretch"/>
       </el-icon>
     </div>
   </div>
@@ -74,12 +74,10 @@ import {
 
 const isCollapse = ref(false)
 
-const handleOpen = (key, keyPath) => {
-  console.log(key, keyPath)
+function handleStretch() {
+  isCollapse.value = !isCollapse.value
 }
-const handleClose = (key, keyPath) => {
-  console.log(key, keyPath)
-}
+
 </script>
 <style scoped>
 .el-menu:not(.el-menu--collapse) {
