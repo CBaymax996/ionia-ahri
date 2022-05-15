@@ -8,32 +8,24 @@
         text-color="#fff"
         active-text-color=" #a0cfff"
         :collapse="isCollapse"
-        @open="handleOpen"
-        @close="handleClose"
     >
-
-      <el-menu-item disabled index="1">
-        <el-icon>
-          <Compass/>
-        </el-icon>
-        <template #title>意图管理</template>
-      </el-menu-item>
       <el-menu-item index="/dashboard/service">
-        <template #title>
+        <template #title :disabled="!isAdmin">
           <el-icon>
             <Link/>
           </el-icon>
           <span>服务管理</span>
         </template>
       </el-menu-item>
-      <el-menu-item disabled index="3">
+      <el-menu-item :disabled="!isAdmin" index="/dashboard/intent">
         <el-icon>
-          <Scissor/>
+          <Compass/>
         </el-icon>
-        <template #title>词槽管理</template>
+        <template #title>意图管理</template>
       </el-menu-item>
 
-      <el-menu-item disabled index="4">
+
+      <el-menu-item :disabled="!isAdmin" index="/dashboard/template">
         <el-icon>
           <Files/>
         </el-icon>
@@ -61,7 +53,8 @@
 
 
 <script setup>
-import {ref} from 'vue'
+import {computed, onMounted, ref} from 'vue'
+
 import {
   Compass,
   Scissor,
@@ -71,13 +64,34 @@ import {
   ArrowLeftBold,
   ArrowRightBold
 } from '@element-plus/icons-vue'
+import {useCookies} from "@vueuse/integrations/useCookies";
+import {UserInfoCookieKey} from "../config/LoginConfig";
+
+let cookies = useCookies();
+let user = ref({
+  username: "",
+  nickname: "",
+  roles: []
+});
 
 const isCollapse = ref(false)
+const isAdmin = computed(() => {
+  let b = false;
+  user.value['roles'].forEach((role) => {
+    if (role.name === "admin") {
+      b = true
+    }
+  })
+  return b
+})
 
 function handleStretch() {
   isCollapse.value = !isCollapse.value
 }
 
+onMounted(() => {
+  user.value = cookies.get(UserInfoCookieKey)
+})
 </script>
 <style scoped>
 .el-menu:not(.el-menu--collapse) {

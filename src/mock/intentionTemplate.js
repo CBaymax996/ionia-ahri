@@ -6,12 +6,12 @@ const template_1 = {
         {
             id: 1,
             name: "股票名称",
-            wordIndex: null
+            wordIndex: 1
         },
         {
             id: 2,
             name: "时间",
-            wordIndex: null
+            wordIndex: 1
         }
     ]
 }

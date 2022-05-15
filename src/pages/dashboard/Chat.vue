@@ -1,5 +1,5 @@
 <template>
-  <div class="h-full w-full flex overflow-scroll justify-center items-center">
+  <div class="h-full w-full flex flex-col overflow-scroll justify-center items-center">
     <div class="chat-page
                 w-full
                 h-full
@@ -10,11 +10,15 @@
       <ChatFrame/>
     </div>
   </div>
+
+
 </template>
 
 <script setup>
+import ChatFrame from "../../components/chat/ChatFrame.vue"
 
-import ChatFrame from "~/components/chat/ChatFrame.vue"
+
+
 </script>
 
 

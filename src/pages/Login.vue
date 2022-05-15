@@ -22,7 +22,7 @@
 </template>
 
 <script setup>
-import axios from "axios";
+
 import {useTitle} from "@vueuse/core/index";
 import {useCookies} from '@vueuse/integrations/useCookies'
 import {ref} from "vue";
@@ -31,8 +31,11 @@ import {LoginCookieKey} from '~/config/LoginConfig'
 
 import bgImg from "~/assets/buaa.jpeg"
 import {router} from "../config/RouteConfig";
+import user from "../api/user";
+import {UserInfoCookieKey} from "../config/LoginConfig";
 
 useTitle("Login Page")
+const cookies = useCookies()
 
 // 表单内容
 let formData = ref({
@@ -42,22 +45,31 @@ let formData = ref({
 
 
 function onSubmit() {
-  let cookies = useCookies();
-  axios.post('/api/login', {
-    username: formData.value.username,
-    password: formData.value.password
-  }).then((res, req) => {
-    console.log(req)
-    console.log(res.data);
-    let data = res.data
-    if (data.success === true) {
-      ElMessage({message: data.data, type: "success"})
-      router.push("/")
-    } else {
-      ElMessage({message: data.message, type: "error"})
-    }
+  let username = formData.value.username;
+  let password = formData.value.password
+  // 获取token
+
+  Promise.resolve()
+      .then(() => user.login(username, password))
+      .then((res) => {
+            let data = res.data
+            if (data.success === true) {
+              cookies.set(LoginCookieKey, res.headers['authorization'])
+              ElMessage({message: data.data, type: "success"})
+            } else {
+              ElMessage({message: data.message, type: "error"})
+            }
+          }
+      )
+      .then(() => user.get(username))
+      .then(res => {
+        let data = res.data
+        if (data.success === true) {
+          cookies.set(UserInfoCookieKey, data.data)
+        }
+      }).then(() => {
+    router.push("/")
   })
-  cookies.set(LoginCookieKey, "admin")
 
 
 }

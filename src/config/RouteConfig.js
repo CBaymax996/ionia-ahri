@@ -4,7 +4,7 @@ import generatedRoutes from 'virtual:generated-pages'
 import {useCookies} from '@vueuse/integrations/useCookies'
 import {LoginCookieKey} from './LoginConfig'
 
-// 扫描路径生成路由
+// 生成路由
 const router = createRouter({
     history: createWebHistory(),
     routes: setupLayouts(generatedRoutes)

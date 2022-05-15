@@ -1,56 +1,45 @@
 <template>
-  <div class="intention-template-editor">
-    <el-input type="text" placeholder="新的模板" v-model="template.text">
-      <el-button slot="append" type="primary" icon="el-icon-edit" @click="dialogVisible= true"/>
-    </el-input>
-    <!--弹出编辑窗-->
-    <el-dialog :visible.sync="dialogVisible" title="编辑模板">
-
-      <el-input id="template" type="text" placeholder="新的模板" v-model="template.text">
-        <template slot="prepend">模板</template>
-      </el-input>
-      <el-switch v-model="divWords" active-text="分词" inactive-color="#C0CCDA" active-color="#C0CCDA"
-                 inactive-text="标记"/>
-      <br/>
-
-      <div v-if="divWords">
-        分词
-        <el-button>智能分词</el-button>
-        <div class="words" @mousedown="dragBefore($event)" @mouseup="dragAfter($event)" @mousemove="dragging($event)">
-          <ul>
-            <li v-for="(word,index) in getWords(template)" :key="index" ref="word" :style="getColor(word)">
-              {{ word }}
-            </li>
-          </ul>
-          <!--框选遮罩层-->
-          <div id="chose-mask" v-show="beginSelect" :style="maskStyle" ref="mask"></div>
+  <div class="intention-template-editor w-full">
+    <el-radio-group v-model="operate" class="my-2">
+      <el-radio-button label="分词"></el-radio-button>
+      <el-radio-button label="标记"></el-radio-button>
+    </el-radio-group>
+    <div v-if="operate==='分词'">
+      <div class="flex justify-between">
+        <p class="c-gray-400 text-base"> 请在下面的区域内进行手动框选 </p>
+        <div>
+          <el-button @click="shuffleWords">打散</el-button>
+          <el-button @click="remoteCutWords(template.sentence)">智能分词</el-button>
         </div>
       </div>
-      <div v-else>
-        标记
-        <el-tag v-for="s in slots" :key="s.id" class="slots"
-                @click="selectSlotIndex = selectSlotIndex===s.id?null:s.id">
-          <el-badge :class="{active: s.id===selectSlotIndex}">{{ s.name }}</el-badge>
-        </el-tag>
-        <div class="words">
-          <ul>
-            <li v-for="(word,index) in getWords(template)" :key="index" ref="word" :style="getColor(word)"
-                @click="addSlot(index)">
-              <el-badge :value="isMarked(index)"> {{ word }}
-              </el-badge>
-            </li>
-          </ul>
-        </div>
-
+      <div class="words" @mousedown="dragBefore($event)" @mousemove="dragging($event)" @mouseup="dragAfter($event)">
+        <ul>
+          <li v-for="(word,index) in getWords(template['sentence'],template['participle'])" :key="index" ref="word"
+              :style="getColor(word)">
+            {{ word }}
+          </li>
+        </ul>
+        <!--框选遮罩层-->
+        <div v-show="beginSelect" id="chose-mask" ref="mask" :style="maskStyle"></div>
       </div>
-
-      <!-- 对话框的尾部-->
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button @click="dialogVisible = false" type="primary">保存</el-button>
+    </div>
+    <div v-else>
+      <p class="c-gray-400 text-base mb-2">请选中插槽后点击对应单词位置以实现标记</p>
+      <el-tag v-for="s in slots" :key="s.id" class="slots"
+              @click="selectedSlotId = selectedSlotId===s.id?null:s.id">
+        <el-badge :class="{active: s.id===selectedSlotId}" class="transition	">{{ s.name }}</el-badge>
+      </el-tag>
+      <div class="words">
+        <ul>
+          <li v-for="(word,index) in getWords(template['sentence'],template['participle'])" :key="index" ref="word"
+              :style="getColor(word)"
+              @click="addMapping(index)">
+            <el-badge :value="isMarked(index)"> {{ word }}
+            </el-badge>
+          </li>
+        </ul>
       </div>
-
-    </el-dialog>
+    </div>
   </div>
 </template>
 
@@ -58,14 +47,20 @@
 import {colorForStr} from "~/utils/ColorUtil";
 import {isOverlap} from "~/utils/DomUtil";
 import {mergeList} from "~/utils/CollectionUtil";
+import template from "../../api/template";
+import axios from "axios";
+import python from "../../api/python";
 
 export default {
   name: "IntentionTemplateEditor",
-  props: ["template", "slots"],
+  props: [
+    "slots",
+    "template"],
   data() {
     return {
-      dialogVisible: false,
-      divWords: false,
+      active: 1,
+      dialogVisible: true,
+      operate: "分词",
 
       // 分词模块
       /**
@@ -87,27 +82,87 @@ export default {
         oldTop: 0
       },
       // 标记模块
-      selectSlotIndex: null
-
+      selectedSlotId: null
     }
   },
   methods: {
-    getWords: function (template) {
-      if (template == null || template.text == null) {
-        return null
-      }
-      if (template.words == null || template.words.join("") !== template.text) {
-        // 单独分词
-        template.words = template.text.split('');
-      }
+    getWords: function (text, participle = null) {
 
-      return template.words
-    },
-    getColor: function (str) {
-      return {"color": colorForStr(str)}
+      if (participle == null || participle.join('') !== text) {
+        this.template.participle = text.split('')
+        return text.split('')
+      }
+      return participle
     },
 
-    //  框选逻辑
+    /**
+     * 获取被框选中的word,并合并对应的word
+     */
+    getSelectItem: function () {
+      let maskDom = this.$refs.mask;
+      // 判断dom节点是否被mask遮罩
+      let wordsLiDom = this.$refs.word;
+      let isAdd = false;
+      let selectIndex = []
+      for (let i = 0; i < wordsLiDom.length; i++) {
+        if (isOverlap(maskDom, wordsLiDom[i])) {
+          selectIndex.push(i)
+          isAdd = true
+        } else {
+          if (isAdd === true) {
+            break;
+          }
+        }
+      }
+      this.template.participle = mergeList(this.template.participle, selectIndex);
+    },
+    /**
+     * 添加词槽和位置映射
+     **/
+    addMapping: function (index) {
+      if (this.selectedSlotId == null) {
+        return;
+      }
+      if (this.template.slotMapping === null) {
+        this.template.slotMapping = {}
+      }
+
+      this.template.slotMapping[this.selectedSlotId] =
+          this.template.slotMapping[this.selectedSlotId] === index ? undefined : index.toString();
+
+    },
+    /**
+     * 判断Word是否被选中，并返回对应的词槽名
+     * @return {string}
+     */
+    isMarked: function (wordIndex) {
+      if (this.template['slotMapping'] === null) {
+        return undefined
+      }
+      for (let key in this.template.slotMapping) {
+        if (this.template['slotMapping'][key] === wordIndex.toString()) {
+          return this.slots[key].name
+        }
+      }
+      return undefined;
+    },
+    /**
+     * 打散单词列表
+     */
+    shuffleWords: function () {
+      this.template.participle = this.template.sentence.split('')
+    },
+    remoteCutWords: function (text) {
+      python.cut(text).then(res => {
+        console.log(res);
+        let data = res.data
+        if (data.success === true) {
+          this.template.participle = JSON.parse(data.data)
+        }
+      })
+    }
+    ,
+//  框选逻辑
     /**
      * 拖拽前
      */
@@ -121,7 +176,8 @@ export default {
       this.maskStyle.left = event.pageX + 'px'
       this.maskStyle.top = event.pageY + 'px'
 
-    },
+    }
+    ,
     /**
      * 拖拽中
      */
@@ -149,7 +205,8 @@ export default {
       }
 
 
-    },
+    }
+    ,
     /**
      * 拖拽后
      */
@@ -165,57 +222,14 @@ export default {
       this.maskStyle.top = 0;
       this.maskStyle.left = 0;
 
-    },
-
-    /**
-     * 获取被选中的word
-     */
-    getSelectItem: function () {
-      let maskDom = this.$refs.mask;
-      // 判断dom节点是否被mask遮罩
-      let wordsLiDom = this.$refs.word;
-      let isAdd = false;
-      let selectIndex = []
-      for (let i = 0; i < wordsLiDom.length; i++) {
-        if (isOverlap(maskDom, wordsLiDom[i])) {
-          selectIndex.push(i)
-          isAdd = true
-        } else {
-          if (isAdd === true) {
-            break;
-          }
-        }
-      }
-      this.template.words = mergeList(this.template.words, selectIndex);
-    },
-    //
-    addSlot: function (index) {
-      if (this.selectSlotIndex == null) {
-        return;
-      }
-      this.template.slots.forEach((slot, i, arr) => {
-        if (slot.id === this.selectSlotIndex) {
-          arr[i].wordIndex = slot.wordIndex === index ? null : index;
-        }
-      })
-    },
-    /**
-     * 判断Word是否被选中
-     * @return {boolean|null}
-     */
-    isMarked: function (wordIndex) {
-      let res = null;
-      this.template.slots.forEach(slot => {
-        if (slot.wordIndex === wordIndex) {
-          res = slot.name;
-        }
-      })
-      return res;
     }
+    ,
+    getColor: function (str) {
+      return {"color": colorForStr(str)}
+    }
+    ,
 
-
-  },
-  computed: {}
+  }
 
 }
 </script>
@@ -224,8 +238,9 @@ export default {
 
 .words {
   border: dashed #a9a9a9 1px;
-  margin: 5px 5px;
-  padding: 5px 5px;
+  margin: 15px;
+  min-height: 100px;
+  padding: 15px;
 }
 
 

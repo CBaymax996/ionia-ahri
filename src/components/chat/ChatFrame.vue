@@ -1,41 +1,29 @@
 <template>
-  <div class="chat-frame h-full flex flex-col relative ">
-    <div id="chat-log" class="flex-1 my-2 self-end overflow-y-auto " @wheel=" throttle(handleWheel)">
-      <Item :avatar="robotIcon" :content="`你好，我是对话机器人，有什么可以帮你的吗？`" left name="ROBOT"/>
-      <Item :avatar="userIcon" :content="`明天天气怎么样？明天天气怎么样？明天天气怎么样？
-      明天天气怎么样？明天天气怎么样？明天天气怎么样？明天天气怎么样？明天天气怎么样？明天天气怎么样？明天天气怎么样？明天天气怎么样？明天天气怎么样？明天天气怎么样？`" name="管理员"/>
-      <Item :avatar="robotIcon" :content="`明天15到26度，多云转小雨，出门记得带伞哦！`" left name="ROBOT"/>
-      <Item :avatar="robotIcon" :content="`你好，我是对话机器人，有什么可以帮你的吗？`" left name="ROBOT"/>
-      <Item :avatar="userIcon" :content="`明天天气怎么样？`" name="管理员"/>
-      <Item :avatar="robotIcon" :content="`明天15到26度，多云转小雨，出门记得带伞哦！明天15到26度，多云转小雨，
-      出门记得带伞哦明天15到26度，多云转小雨，出门记
-      得带伞哦明天15到26度，多云转小雨，出门记得带伞哦明天15到26度，多云转小雨，出门记得带伞哦`" left name="ROBOT"/>
-      <Item :avatar="robotIcon" :content="`你好，我是对话机器人，有什么可以帮你的吗？`" left name="ROBOT"/>
-      <Item :avatar="userIcon" :content="`明天天气怎么样？`" name="管理员"/>
-      <Item :avatar="robotIcon" :content="`明天15到26度，多云转小雨，出门记得带伞哦！`" left name="ROBOT"/>
-      <Item :avatar="robotIcon" :content="`你好，我是对话机器人，有什么可以帮你的吗？`" left name="ROBOT"/>
-      <Item :avatar="userIcon" :content="`明天天气怎么样？`" name="管理员"/>
-      <Item :avatar="robotIcon" :content="`明天15到26度，多云转小雨，出门记得带伞哦！`" left name="ROBOT"/>
-      <Item :avatar="robotIcon" :content="`你好，我是对话机器人，有什么可以帮你的吗？`" left name="ROBOT"/>
-      <Item :avatar="userIcon" :content="`明天天气怎么样？`" name="管理员"/>
-      <Item :avatar="robotIcon" :content="`明天15到26度，多云转小雨，出门记得带伞哦！`" left name="ROBOT"/>
-      <Item :avatar="robotIcon" :content="`你好，我是对话机器人，有什么可以帮你的吗？`" left name="ROBOT"/>
-      <Item :avatar="userIcon" :content="`明天天气怎么样？`" name="管理员"/>
-      <Item :avatar="robotIcon" :content="`明天15到26度，多云转小雨，出门记得带伞哦！`" left name="ROBOT"/>
+  <div class="chat-frame h-full flex  flex-col justify-center relative ">
+    <div id="chat-log" class="flex-1 mb-2 self-end overflow-y-auto w-full " @wheel=" throttle(handleWheel,time=100)">
+      <Item v-for="(chatItem,index) in chatLog"
+            :key="index"
+            :avatar="chatItem.name==='BOT'?robotIcon:userIcon"
+            :content="chatItem.text"
+            :left="chatItem.name==='BOT'"
+            :name="chatItem.name==='BOT'?'BOT':userName"
+      />
+
     </div>
     <div v-show="isShowBackToBottom"
          class="back-to-bottom absolute bottom-23 h-5  left-1 right-1 text-center"
          @click="scrollToBottom()">
       回到底部
     </div>
-
-    <div class="h-20 flex">
-
-      {{ isShowBackToBottom }}
-      <input class=" flex-1 border-none  h-full"/>
-      <span class="bg-blue-400 c-gray-700 m-2 rounded-2 w-20 flex flex-col justify-center items-center "
+    <div class="h-20 self-center w-full flex ">
+      <textarea v-model="inputText" class="flex-1  border-none  text-lg c-gray-500" placeholder="请输入文本"/>
+      <span class="bg-blue-300 c-gray-700 hover:bg-blue-400 hover:c-gray-100 m-2 rounded-2 w-20
+              flex flex-col justify-center items-center "
+            @click="sendMsg"
+            @keyup.enter="sendMsg"
       >
-        <div class="tracking-1 ">发送</div>ENTER</span>
+        <div>发 送 <el-icon v-if="isLoading" class="animate-spin"><loading/></el-icon></div>
+        SEND</span>
     </div>
 
   </div>
@@ -45,14 +33,33 @@
 <script setup>
 
 import Item from "~/components/chat/Item.vue"
+import {useCookies} from '@vueuse/integrations/useCookies'
+import {
+  Loading
+} from '@element-plus/icons-vue'
+
+let cookies = useCookies();
 // 头像资源
 import userIcon from "~/assets/chat/user.jpg?url"
 import robotIcon from "~/assets/chat/robot.svg?url"
 import {onMounted, ref} from "vue";
-import {throttle, debounce} from "~/utils/delay";
+import {throttle} from "~/utils/delay";
+import {UserInfoCookieKey} from "~/config/LoginConfig";
+import {ElMessage} from "element-plus";
+import python from "../../api/python";
+
 
 let isShowBackToBottom = ref(false)
 
+let userName = ref("用户");
+
+let inputText = ref("")
+let isLoading = ref(false)
+const chatLog = ref([
+  {
+    name: "BOT", text: "你好，我是对话机器人，有什么可以帮你的吗？",
+  }
+])
 
 function handleWheel() {
   let chatLog = document.getElementById("chat-log");
@@ -62,12 +69,37 @@ function handleWheel() {
   isShowBackToBottom.value = chatLog.scrollTop < chatLog.scrollHeight - chatLog.clientHeight - 50;
 }
 
+function sendMsg() {
+
+  if (inputText.value === "") {
+    ElMessage({message: "请输入文本", type: "warning"})
+    return;
+  }
+  isLoading.value = true
+  chatLog.value.push({name: userName.value, text: inputText.value})
+  python.chat(inputText.value).then((res) => {
+    let data = res.data;
+    if (data.success === true) {
+      chatLog.value.push({name: "BOT", text: data.data})
+
+    }
+
+  }).finally(() => {
+    isLoading.value = false
+    inputText.value = ""
+    scrollToBottom()
+  })
+  setTimeout(() => {
+
+
+  }, 1000)
+
+}
 
 /**
  * 回到聊天底部按钮
  * 跳转到最下面的聊天记录
  * */
-
 function scrollToBottom() {
   let chatLog = document.getElementById("chat-log");
   chatLog.scrollTop = chatLog.scrollHeight;
@@ -75,8 +107,10 @@ function scrollToBottom() {
 }
 
 onMounted(() => scrollToBottom())
-
-
+onMounted(() => {
+  let user = cookies.get(UserInfoCookieKey)
+  userName.value = user.nickname == null ? user.username : user.nickname
+})
 </script>
 
 <style scoped>
@@ -97,4 +131,8 @@ onMounted(() => scrollToBottom())
   scroll-behavior: smooth;
 }
 
+textarea {
+  resize: none;
+  outline: none;
+}
 </style>

@@ -16,8 +16,6 @@ import mock_intent from "~/mock/intentionTemplate"
 let slots = ref(mock_intent.slots)
 let template = ref(mock_intent.template_1)
 
-console.log(mock_intent)
-console.log(template)
 
 </script>
 

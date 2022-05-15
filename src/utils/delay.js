@@ -10,7 +10,6 @@ function throttle(func, delay = 500) {
             clearTimeout(func.timer)
         }
         func.timer = setTimeout(() => {
-            console.log(4)
             func();
         }, delay);
     }()
@@ -28,7 +27,6 @@ function debounce(fn, time = 500) {
         }
         fn.timer = setTimeout(() => {
             fn();
-            console.log(4)
             fn.timer = undefined
         }, time)
     }()
